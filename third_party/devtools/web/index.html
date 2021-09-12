@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<!--
+  Copyright 2018 The Chromium Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+-->
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title></title>
+    <link href="favicon.png" rel="icon" sizes="64x64">
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->	
+    <script>	
+      const GA_DEVTOOLS_PROPERTY = 'UA-26406144-34'; // Dart DevTools GA Property UA.	
+
+      function getDevToolsPropertyID() {	
+          return GA_DEVTOOLS_PROPERTY;	
+      }	
+    </script>	
+    <!-- The below URI ?id= must match the GA_DEVTOOLS_PROPERTY above. -->	
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-26406144-34"></script>	
+    <script type="text/javascript" src="devtools_analytics.js"></script>	
+    <!-- End of DevTools Google Analytics -->
+
+    <script type="text/javascript">
+        function supportsES6Classes() {
+            "use strict";
+            try { eval("class Foo {}"); }
+            catch (e) { return false; }
+            return true;
+        }
+
+        if (!supportsES6Classes()) {
+            window.location.href = '/unsupported-browser.html';
+        }
+
+        // Handle URLs that pass all variables directly on a querystring without
+        // the fragment (for ex. VS Code while it has some encoding bugs preventing
+        // building the correct URLs using fragments
+        // https://github.com/microsoft/vscode/issues/85930).
+        if (window.location.search && window.location.search.length > 1) {
+          // Ensure each component is encoded, because if the URI contains / slashes
+          // Flutter will split on them and try to push multiple routes.
+          const params = new URLSearchParams(unescape(window.location.search));
+          params.forEach(function(v, k) { params.set(k, encodeURIComponent(v)) });
+          window.location.replace(window.location.origin + '/#/?' + params.toString());
+        }
+    </script>
+</head>
+
+<body>
+  <script>
+    // Remove any previously registered service workers as DevTools does not use them anymore.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+    }
+  </script>
+
+  <!-- Script to fail gracefully when CanvasKit crashes. -->
+  <script>
+    var realWarn = window.console.warn.bind(console);
+    var tryingToClose = false;
+    window.console.warn = function(obj) {
+      if( typeof obj == "string" && obj.indexOf("CanvasKit") != -1 && obj.indexOf("font") != -1) {
+        if (!tryingToClose) {
+          tryingToClose = true;
+          window.alert(
+            "The Flutter web backend ('CanvasKit') has encountered a fatal error and needs to restart. \n" +
+            "Press OK to restart devtools. We are aware of this bug and working hard on a fix.\n" + obj
+          );
+        }
+        window.location.reload();
+        return;
+      }
+      realWarn(obj);
+    }
+  </script>
+  <script src="main.dart.js" type="application/javascript"></script>
+</body>
+</html>
